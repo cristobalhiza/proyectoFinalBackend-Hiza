@@ -1,0 +1,38 @@
+
+<h1>Gestión de Productos en Tiempo Real</h1>
+
+<form id="page-size-form" method="GET">
+  <label for="page-size">Mostrar:</label>
+  <select name="limit" id="page-size" onchange="this.form.submit()">
+    <option value="10" {{#if (eq limit 10)}}selected{{/if}}>10</option>
+    <option value="20" {{#if (eq limit 20)}}selected{{/if}}>20</option>
+    <option value="50" {{#if (eq limit 50)}}selected{{/if}}>50</option>
+  </select> productos por página
+</form>
+
+<ul id="products-list">
+  {{#each products}}
+    <li>
+      <strong>{{this.title}}</strong> - ${{this.price}} ({{this.category}})
+      <form action="/api/carts/{{cartId}}/product/{{this._id}}" method="POST">
+        <button type="submit">Agregar al carrito</button>
+      </form>
+      <a href="/products/{{this._id}}">Ver detalles</a>
+    </li>
+  {{/each}}
+</ul>
+
+<!-- Pagination Links -->
+<div>
+  {{#if hasPrevPage}}
+    <a href="?page=1&limit={{limit}}">Primera</a>
+    <a href="?page={{prevPage}}&limit={{limit}}">Anterior</a>
+  {{/if}}
+
+  Página {{page}} de {{totalPages}}
+
+  {{#if hasNextPage}}
+    <a href="?page={{nextPage}}&limit={{limit}}">Siguiente</a>
+    <a href="?page={{totalPages}}&limit={{limit}}">Última</a>
+  {{/if}}
+</div>

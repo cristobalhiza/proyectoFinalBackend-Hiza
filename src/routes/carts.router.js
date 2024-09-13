@@ -1,19 +1,21 @@
+
 import { Router } from 'express';
+import { isValidObjectId } from 'mongoose';
 import { CartsManager } from '../dao/cartsManager.js';
 
 const router = Router();
-const cartsManager = new CartsManager('./src/data/carts.json');
+const cartsManager = new CartsManager();
 
+// Get a cart by its ID
 router.get('/:cid', async (req, res) => {
     try {
-        let { cid } = req.params;
-        cid = Number(cid);
-        if (isNaN(cid)) {
+        const { cid } = req.params;
+        if (!isValidObjectId(cid)) {
             res.setHeader("Content-Type", "application/json");
-            return res.status(400).json({ error: "El ID del carrito debe ser un número" });
+            return res.status(400).json({ error: "El ID del carrito no es válido" });
         }
 
-        const cart = await cartsManager.getCartById(cid);
+        const cart = await cartsManager.getCart(cid);
         if (cart) {
             res.setHeader("Content-Type", "application/json");
             res.status(200).json({ cart });
@@ -24,10 +26,11 @@ router.get('/:cid', async (req, res) => {
     } catch (error) {
         console.error("Error al obtener el carrito:", error);
         res.setHeader("Content-Type", "application/json");
-        res.status(500).json({ error: 'Error inesperado en el servidor al intentar obtener el carrito - intente más tarde' });
+        res.status(500).json({ error: 'Error inesperado en el servidor al intentar obtener el carrito' });
     }
 });
 
+// Create a new cart
 router.post('/', async (req, res) => {
     let { userId, ...otros } = req.body;
     if (!userId) {
@@ -36,14 +39,7 @@ router.post('/', async (req, res) => {
     }
 
     try {
-        const carts = await cartsManager.getCarts();
-        let existe = carts.find(c => c.userId === userId);
-        if (existe) {
-            res.setHeader("Content-Type", "application/json");
-            return res.status(400).json({ error: `Ya existe un carrito para el usuario con ID ${userId}` });
-        }
-
-        let newCart = await cartsManager.createCart();
+        const newCart = await cartsManager.createCart({ userId });
         res.setHeader("Content-Type", "application/json");
         return res.status(201).json({ cart: newCart });
     } catch (error) {
@@ -53,18 +49,17 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Add a product to a cart
 router.post('/:cid/product/:pid', async (req, res) => {
     try {
-        let { cid, pid } = req.params;
-        cid = Number(cid);
-        pid = Number(pid);
+        const { cid, pid } = req.params;
 
-        if (isNaN(cid) || isNaN(pid)) {
+        if (!isValidObjectId(cid) || !isValidObjectId(pid)) {
             res.setHeader("Content-Type", "application/json");
-            return res.status(400).json({ error: "El ID del carrito y el ID del producto deben ser números" });
+            return res.status(400).json({ error: "El ID del carrito o del producto no es válido" });
         }
 
-        const cart = await cartsManager.addProductToCart(cid, pid);
+        const cart = await cartsManager.addProductToCart(cid, pid, req.body.quantity || 1);
         if (cart) {
             res.setHeader("Content-Type", "application/json");
             res.status(200).json({ cart });
@@ -79,15 +74,16 @@ router.post('/:cid/product/:pid', async (req, res) => {
     }
 });
 
+// Delete a cart by its ID
 router.delete('/:cid', async (req, res) => {
-    let { cid } = req.params;
-    cid = Number(cid);
-    if (isNaN(cid)) {
-        return res.status(400).json({ error: "El ID del carrito debe ser un número" });
-    }
-
     try {
-        const result = await cartsManager.deleteCart(cid);
+        const { cid } = req.params;
+
+        if (!isValidObjectId(cid)) {
+            return res.status(400).json({ error: "El ID del carrito no es válido" });
+        }
+
+        const result = await cartsManager.clearCart(cid);
         if (result) {
             res.status(200).json({ message: 'Carrito eliminado' });
         } else {
@@ -101,6 +97,5 @@ router.delete('/:cid', async (req, res) => {
         });
     }
 });
-
 
 export default router;

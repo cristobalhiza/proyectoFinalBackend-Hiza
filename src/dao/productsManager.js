@@ -1,113 +1,80 @@
-import fs from 'fs/promises';
 
-class ProductsManager {
-    static path = './src/data/products.json';
+import Product from './models/productsModel.js';
 
-    constructor() { }
-
-    async getProducts(limit) {
+export class ProductsManager {
+    async addProduct(productData) {
         try {
-            await fs.access(ProductsManager.path);
-            const data = await fs.readFile(ProductsManager.path, 'utf-8');
-            const products = data ? JSON.parse(data) : [];
-            return limit ? products.slice(0, limit) : products;
+            const product = new Product(productData);
+            await product.save();
+            return await this.getAllProducts();
         } catch (error) {
-            throw new Error("No se pudieron obtener los productos: " + error.message);
+            throw new Error('Error adding product: ' + error.message);
         }
     }
 
-    async getProductById(id) {
+    async getAllProducts({ query = {}, limit = 10, page = 1, sort = null } = {}) {
         try {
-            const products = await this.getProducts();
-            const product = products.find(p => p.id === id);
-            if (!product) {
-                throw new Error(`Producto con ID ${id} no encontrado`);
+            const filter = {};
+
+            // Apply query filters for category and availability (stock > 0)
+            if (query.category) {
+                filter.category = query.category;
             }
-            return product;
-        } catch (error) {
-            throw new Error("Error al obtener el producto por ID: " + error.message);
-        }
-    }
-
-    async addProduct(product = {}) {
-        try {
-            const products = await this.getProducts();
-
-            product.price = Number(product.price);
-
-
-            if (isNaN(product.price) || product.price < 0) {
-                throw new Error("El precio del producto debe ser un número positivo.");
+            if (query.availability) {
+                filter.stock = { $gt: 0 };
             }
 
-            const existingProduct = products.find(p => p.title === product.title);
-            if (existingProduct) {
-                throw new Error(`Ya existe un producto con el título "${product.title}".`);
+            const productsQuery = Product.find(filter).lean();
+
+            // Apply sorting if provided (asc or desc by price)
+            if (sort) {
+                productsQuery.sort({ price: sort === 'asc' ? 1 : -1 });
             }
 
-            const newProduct = {
-                id: this.generateId(products),
-                ...product,
-                status: true
+            // Apply pagination
+            const totalProducts = await Product.countDocuments(filter);
+            const totalPages = Math.ceil(totalProducts / limit);
+            const products = await productsQuery.skip((page - 1) * limit).limit(limit);
+
+            return {
+                products,
+                totalProducts,
+                totalPages,
+                page,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages,
+                prevPage: page > 1 ? page - 1 : null,
+                nextPage: page < totalPages ? page + 1 : null,
             };
-            products.push(newProduct);
-            await fs.writeFile(ProductsManager.path, JSON.stringify(products, null, 2));
-
-            return products;
         } catch (error) {
-            throw new Error("No se pudo agregar el producto: " + error.message);
+            throw new Error('Error fetching products: ' + error.message);
         }
     }
 
-
-    async updateProduct(id, productData) {
+    async getProductById(productId) {
         try {
-            const products = await this.getProducts();
-
-            const existingProduct = products.find(p => p.title === productData.title && p.id !== id);
-            if (existingProduct) {
-                throw new Error(`Ya existe un producto con el título "${productData.title}".`);
-            }
-
-            const index = products.findIndex(p => p.id === id);
-            if (index !== -1) {
-                products[index] = { ...products[index], ...productData, id };
-                await fs.writeFile(ProductsManager.path, JSON.stringify(products, null, 2));
-
-                return products;
-            } else {
-                throw new Error(`Producto con ID ${id} no encontrado`);
-            }
+            return await Product.findById(productId).lean();
         } catch (error) {
-            throw new Error("No se pudo actualizar el producto: " + error.message);
+            throw new Error('Error fetching product by ID: ' + error.message);
         }
     }
 
-    async deleteProduct(id) {
-
+    async deleteProduct(productId) {
         try {
-            const products = await this.getProducts();
-            const numericId = Number(id);
-
-            const newProducts = products.filter(p => p.id !== numericId);
-            if (products.length !== newProducts.length) {
-                await fs.writeFile(ProductsManager.path, JSON.stringify(newProducts, null, 2));
-
-                return newProducts; 
-            } else {
-                throw new Error(`Producto con ID ${id} no encontrado`);
-            }
+            await Product.findByIdAndDelete(productId);
+            return await this.getAllProducts();
         } catch (error) {
-            throw new Error("No se pudo eliminar el producto: " + error.message);
+            throw new Error('Error deleting product: ' + error.message);
         }
     }
 
-    generateId(products) {
-        const maxId = products.reduce((max, p) => (p.id > max ? p.id : max), 0);
-        return maxId + 1;
+    async updateProduct(productId, productData) {
+        try {
+            return await Product.findByIdAndUpdate(productId, productData, { new: true }).lean();
+        } catch (error) {
+            throw new Error('Error updating product: ' + error.message);
+        }
     }
 }
 
-const productsManager = new ProductsManager();
-
-export { productsManager };
+export const productsManager = new ProductsManager();

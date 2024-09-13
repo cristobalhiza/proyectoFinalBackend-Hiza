@@ -1,67 +1,57 @@
+
 import { Router } from 'express';
+import { isValidObjectId } from 'mongoose';
+import { productsManager } from '../dao/productsManager.js';
 
-const productsRouter = (productsManager) => {
-    const router = Router();
+const router = Router();
 
-    router.get('/', async (req, res) => {
-        try {
-            const products = await productsManager.getProducts();
-            let { limit, skip } = req.query;
+// Get all products with optional query, sorting, and pagination
+router.get('/', async (req, res) => {
+    try {
+        const { limit = 10, page = 1, sort, query } = req.query;
 
-            if (limit) {
-                limit = Number(limit);
-                if (isNaN(limit) || limit < 0) {
-                    return res.status(400).json({ error: "Limit debe ser un número entero mayor o igual a 0" });
-                }
-            } else {
-                limit = products.length;
-            }
+        const result = await productsManager.getAllProducts({
+            query: {
+                category: query?.category,
+                availability: query?.availability
+            },
+            limit: parseInt(limit),
+            page: parseInt(page),
+            sort,
+        });
 
-            if (skip) {
-                skip = Number(skip);
-                if (isNaN(skip) || skip < 0) {
-                    return res.status(400).json({ error: "Skip debe ser un número entero mayor o igual a 0" });
-                }
-            } else {
-                skip = 0;
-            }
+        res.status(200).render('index', {
+            products: result.products,
+            totalPages: result.totalPages,
+            page: result.page,
+            hasPrevPage: result.hasPrevPage,
+            hasNextPage: result.hasNextPage,
+            prevPage: result.prevPage,
+            nextPage: result.nextPage,
+            limit: parseInt(limit),
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener los productos' });
+    }
+});
 
-            let resultado = products.slice(skip, skip + limit);
-            res.setHeader("Content-Type", "application/json");
-            res.status(200).json({ resultado });
-        } catch (error) {
-            res.setHeader("Content-Type", "application/json");
-            return res.status(500).json({
-                error: "Error inesperado en el servidor - Intente más tarde",
-                detalle: `${error.message}`,
-            });
-        }
-    });
-
-    router.get('/:pid', async (req, res) => {
-        let { pid } = req.params;
-        pid = Number(pid);
-        if (isNaN(pid)) {
-            return res.status(400).json({ error: "El ID del producto debe ser un número" });
+// Get a product by its ID
+router.get('/:pid', async (req, res) => {
+    try {
+        const { pid } = req.params;
+        if (!isValidObjectId(pid)) {
+            return res.status(400).json({ error: "El ID del producto no es válido" });
         }
 
-        try {
-            const product = await productsManager.getProductById(pid);
-            if (!product) {
-                return res.status(404).json({ error: `Producto con ID ${pid} no encontrado` });
-            }
-            res.setHeader("Content-Type", "application/json");
+        const product = await productsManager.getProductById(pid);
+        if (product) {
             res.status(200).json({ product });
-        } catch (error) {
-            res.setHeader("Content-Type", "application/json");
-            return res.status(500).json({
-                error: "Error inesperado en el servidor - Intente más tarde",
-                detalle: `${error.message}`,
-            });
+        } else {
+            res.status(404).json({ error: 'Producto no encontrado' });
         }
-    });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener el producto' });
+    }
+});
 
-    return router;
-};
-
-export default productsRouter;
+export default router;
