@@ -8,7 +8,7 @@ export class ProductsManager {
             await product.save();
             return await this.getAllProducts();
         } catch (error) {
-            throw new Error('Error adding product: ' + error.message);
+            throw new Error('Error al agregar producto ' + error.message);
         }
     }
 
@@ -16,7 +16,6 @@ export class ProductsManager {
         try {
             const filter = {};
 
-            // Apply query filters for category and availability (stock > 0)
             if (query.category) {
                 filter.category = query.category;
             }
@@ -26,12 +25,10 @@ export class ProductsManager {
 
             const productsQuery = Product.find(filter).lean();
 
-            // Apply sorting if provided (asc or desc by price)
             if (sort) {
                 productsQuery.sort({ price: sort === 'asc' ? 1 : -1 });
             }
 
-            // Apply pagination
             const totalProducts = await Product.countDocuments(filter);
             const totalPages = Math.ceil(totalProducts / limit);
             const products = await productsQuery.skip((page - 1) * limit).limit(limit);
@@ -47,7 +44,7 @@ export class ProductsManager {
                 nextPage: page < totalPages ? page + 1 : null,
             };
         } catch (error) {
-            throw new Error('Error fetching products: ' + error.message);
+            throw new Error('Error obteniendo productos: ' + error.message);
         }
     }
 
@@ -55,7 +52,7 @@ export class ProductsManager {
         try {
             return await Product.findById(productId).lean();
         } catch (error) {
-            throw new Error('Error fetching product by ID: ' + error.message);
+            throw new Error('Error obteniendo producto por ID: ' + error.message);
         }
     }
 
@@ -64,7 +61,7 @@ export class ProductsManager {
             await Product.findByIdAndDelete(productId);
             return await this.getAllProducts();
         } catch (error) {
-            throw new Error('Error deleting product: ' + error.message);
+            throw new Error('Error eliminando productos: ' + error.message);
         }
     }
 
@@ -72,7 +69,7 @@ export class ProductsManager {
         try {
             return await Product.findByIdAndUpdate(productId, productData, { new: true }).lean();
         } catch (error) {
-            throw new Error('Error updating product: ' + error.message);
+            throw new Error('Error al actualizar producto: ' + error.message);
         }
     }
 }

@@ -1,4 +1,3 @@
-
 import express from 'express';
 import { create } from 'express-handlebars';
 import path from 'path';
@@ -9,7 +8,8 @@ import viewsRouter from './routes/views.router.js';
 import productsRouter from './routes/products.router.js';
 import cartsRouter from './routes/carts.router.js';
 import { productsManager } from './dao/productsManager.js';
-import connectDB from './connDB.js';  // Import MongoDB connection
+import connectDB from './connDB.js';
+import handlebars from 'handlebars';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +17,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
+
+handlebars.registerHelper('eq', function (a, b) {
+    return a === b;
+});
 
 const hbs = create({
     extname: '.handlebars',
@@ -31,11 +35,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB
 connectDB();
 
 app.use('/', viewsRouter);
-app.use('/api/products', productsRouter);
+app.use('/products', productsRouter);
 app.use('/api/carts', cartsRouter);
 
 const PORT = 8080;

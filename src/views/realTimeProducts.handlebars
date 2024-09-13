@@ -8,7 +8,9 @@
 
 <ul id="productList">
     {{#each products}}
-    <li>{{this.title}} - {{this.price}}
+    <li>{{this.title}}
+        -
+        {{this.price}}
         <button onclick="deleteProduct('{{this.id}}')">Eliminar</button>
     </li>
     {{/each}}

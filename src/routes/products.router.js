@@ -5,7 +5,6 @@ import { productsManager } from '../dao/productsManager.js';
 
 const router = Router();
 
-// Get all products with optional query, sorting, and pagination
 router.get('/', async (req, res) => {
     try {
         const { limit = 10, page = 1, sort, query } = req.query;
@@ -35,7 +34,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get a product by its ID
 router.get('/:pid', async (req, res) => {
     try {
         const { pid } = req.params;
@@ -45,7 +43,7 @@ router.get('/:pid', async (req, res) => {
 
         const product = await productsManager.getProductById(pid);
         if (product) {
-            res.status(200).json({ product });
+            res.status(200).render('productDetails', { product });
         } else {
             res.status(404).json({ error: 'Producto no encontrado' });
         }

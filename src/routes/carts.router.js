@@ -6,7 +6,6 @@ import { CartsManager } from '../dao/cartsManager.js';
 const router = Router();
 const cartsManager = new CartsManager();
 
-// Get a cart by its ID
 router.get('/:cid', async (req, res) => {
     try {
         const { cid } = req.params;
@@ -30,7 +29,6 @@ router.get('/:cid', async (req, res) => {
     }
 });
 
-// Create a new cart
 router.post('/', async (req, res) => {
     let { userId, ...otros } = req.body;
     if (!userId) {
@@ -49,7 +47,6 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Add a product to a cart
 router.post('/:cid/product/:pid', async (req, res) => {
     try {
         const { cid, pid } = req.params;
@@ -74,7 +71,6 @@ router.post('/:cid/product/:pid', async (req, res) => {
     }
 });
 
-// Delete a cart by its ID
 router.delete('/:cid', async (req, res) => {
     try {
         const { cid } = req.params;
