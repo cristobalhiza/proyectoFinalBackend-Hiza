@@ -1,0 +1,135 @@
+[
+  {
+    "id": 1,
+    "title": "Raqueta de Tenis Wilson Pro Staff - Edición Especial",
+    "description": "Raqueta de tenis actualizada con nuevas características para un rendimiento mejorado.",
+    "code": "RACQUET123",
+    "price": 270,
+    "status": true,
+    "stock": 25,
+    "category": "Tenis",
+    "thumbnails": [
+      "wilson_pro_staff1.jpg",
+      "wilson_pro_staff2.jpg"
+    ]
+  },
+  {
+    "id": 2,
+    "title": "Zapatillas de Pádel Adidas Barricade",
+    "description": "Zapatillas diseñadas para jugadores de pádel, con excelente agarre y comodidad.",
+    "code": "SHOES456",
+    "price": 120,
+    "status": true,
+    "stock": 50,
+    "category": "Pádel",
+    "thumbnails": [
+      "adidas_barricade1.jpg",
+      "adidas_barricade2.jpg"
+    ]
+  },
+  {
+    "id": 3,
+    "title": "Pelotas de Tenis Head Championship",
+    "description": "Set de 3 pelotas de tenis de alta durabilidad, aprobadas por ITF.",
+    "code": "BALLS789",
+    "price": 10,
+    "status": true,
+    "stock": 200,
+    "category": "Tenis",
+    "thumbnails": [
+      "head_championship1.jpg"
+    ]
+  },
+  {
+    "id": 4,
+    "title": "Pala de Pádel Babolat Viper",
+    "description": "Pala de pádel con núcleo de goma EVA, ideal para jugadores avanzados.",
+    "code": "PADEL123",
+    "price": 180,
+    "status": true,
+    "stock": 40,
+    "category": "Pádel",
+    "thumbnails": [
+      "babolat_viper1.jpg",
+      "babolat_viper2.jpg"
+    ]
+  },
+  {
+    "id": 5,
+    "title": "Bolso de Tenis Babolat Pure Aero",
+    "description": "Bolso con capacidad para 9 raquetas, compartimentos térmicos y ventilación.",
+    "code": "BAG456",
+    "price": 90,
+    "status": true,
+    "stock": 15,
+    "category": "Accesorios",
+    "thumbnails": [
+      "babolat_pure_aero1.jpg"
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Muñequera Nike Swoosh",
+    "description": "Muñequera absorbente para mantener las manos secas durante el juego.",
+    "code": "WRISTBAND789",
+    "price": 15,
+    "status": true,
+    "stock": 100,
+    "category": "Accesorios",
+    "thumbnails": [
+      "nike_swoosh1.jpg"
+    ]
+  },
+  {
+    "id": 7,
+    "title": "Red de Tenis Portátil",
+    "description": "Red de tenis portátil para practicar en cualquier lugar.",
+    "code": "NET123",
+    "price": 60,
+    "status": true,
+    "stock": 20,
+    "category": "Tenis",
+    "thumbnails": [
+      "portable_net1.jpg"
+    ]
+  },
+  {
+    "id": 8,
+    "title": "Overgrip Wilson Pro",
+    "description": "Overgrip de alta absorción para mejorar el agarre de la raqueta.",
+    "code": "GRIP456",
+    "price": 8,
+    "status": true,
+    "stock": 300,
+    "category": "Accesorios",
+    "thumbnails": [
+      "wilson_pro_grip1.jpg"
+    ]
+  },
+  {
+    "id": 9,
+    "title": "Cinta para la Cabeza Adidas",
+    "description": "Cinta para la cabeza que absorbe el sudor, ideal para deportes de raqueta.",
+    "code": "HEADBAND789",
+    "price": 12,
+    "status": true,
+    "stock": 150,
+    "category": "Accesorios",
+    "thumbnails": [
+      "adidas_headband1.jpg"
+    ]
+  },
+  {
+    "id": 10,
+    "title": "Protector de Pala Nox",
+    "description": "Protector de pala resistente para evitar daños por golpes.",
+    "code": "PROTECTOR123",
+    "price": 20,
+    "status": true,
+    "stock": 80,
+    "category": "Pádel",
+    "thumbnails": [
+      "nox_protector1.jpg"
+    ]
+  }
+]
