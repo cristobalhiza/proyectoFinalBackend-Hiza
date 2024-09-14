@@ -43,7 +43,7 @@ Asegúrate de tener las siguientes herramientas instaladas:
 2. Dirígete a la carpeta del proyecto:
 
     ```bash
-    cd proyecto-backend-carrito
+    cd proyectoFinalBackend-Hiza
     ```
 
 3. Instala las dependencias necesarias ejecutando el siguiente comando:
