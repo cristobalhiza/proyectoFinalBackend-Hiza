@@ -1,5 +1,9 @@
-<h1>Gestión de Productos en Tiempo Real</h1>
+<h1>Listado de Productos</h1>
 
+<!-- Link para ir a la administración de productos -->
+<a href="/realtimeproducts">Ir a Administración de Productos</a>
+
+<!-- Formulario para cambiar la cantidad de productos mostrados por página -->
 <form id="page-size-form" method="GET">
   <label for="page-size">Mostrar:</label>
   <select name="limit" id="page-size" onchange="this.form.submit()">
@@ -9,6 +13,7 @@
   </select> productos por página
 </form>
 
+<!-- Listado de productos con opción para agregar al carrito -->
 <ul id="products-list">
   {{#each products}}
   <li>
@@ -21,6 +26,7 @@
   {{/each}}
 </ul>
 
+<!-- Paginación -->
 <div>
   {{#if hasPrevPage}}
   <a href="?page=1&limit={{limit}}">Primera</a>

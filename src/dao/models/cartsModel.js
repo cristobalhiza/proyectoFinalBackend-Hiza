@@ -1,4 +1,3 @@
-
 import mongoose from 'mongoose';
 
 const cartSchema = new mongoose.Schema({
@@ -16,11 +15,11 @@ const cartSchema = new mongoose.Schema({
             }
         }
     ]
-});
+}, { timestamps: true });
 
-// Automatically populate products when using findOne
+// Automatically populate products when using findOne (without lean)
 cartSchema.pre('findOne', function () {
-    this.populate('products.product').lean();
+    this.populate('products.product');
 });
 
 const Cart = mongoose.model('Cart', cartSchema);

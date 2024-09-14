@@ -2,16 +2,16 @@
 
 <form id="productForm">
     <input type="text" id="name" placeholder="Nombre del Producto" required />
-    <input type="number" id="price" placeholder="Precio" required />
+    <input type="number" id="price" placeholder="Precio" min="0" required />
+    <input type="text" id="category" placeholder="Categoría" required />
+    <input type="number" id="stock" placeholder="Stock" min="0" required />
     <button type="submit">Agregar Producto</button>
 </form>
 
 <ul id="productList">
     {{#each products}}
-    <li>{{this.title}}
-        -
-        {{this.price}}
-        <button onclick="deleteProduct('{{this.id}}')">Eliminar</button>
+    <li>{{this.title}} - ${{this.price}} ({{this.category}}) - Stock: {{this.stock}}
+        <button onclick="deleteProduct('{{this._id}}')">Eliminar</button>
     </li>
     {{/each}}
 </ul>

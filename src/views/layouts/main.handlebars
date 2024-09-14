@@ -1,20 +1,24 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}}</title>
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-    {{#if successMessage}}
-      <div style="color: green;">{{successMessage}}</div>
-    {{/if}}
-
-    {{#if errorMessage}}
-      <div style="color: red;">{{errorMessage}}</div>
-    {{/if}}
-
+    <header>
+        <nav>
+            <a href="/">Inicio</a> |
+            <a href="/products">Productos</a> |
+            <a href="/api/carts/{{cartId}}">Ver Carrito</a> 
+        </nav>
+    </header>
     {{{body}}}
+    <footer>
+        <p>Proyecto Final Backend I Cristobal Hiza</p>
+    </footer>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/index.js"></script> 
 </body>
 </html>

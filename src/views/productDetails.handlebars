@@ -6,9 +6,13 @@
     <p>Categoría: {{product.category}}</p>
     <p>Stock: {{product.stock}}</p>
 
-    <form action="/api/carts/{{cartId}}/product/{{product._id}}" method="POST">
-        <button type="submit">Agregar al carrito</button>
-    </form>
+    <label for="quantity">Cantidad:</label>
+    <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+    <button type="button" onclick="addToCart('{{product._id}}', document.getElementById('quantity').value)">
+        Agregar al carrito
+    </button>
+    <br>
+    <br>
+    <a href="/products">Volver a la lista de productos</a>
 </div>
-
-<a href="/products">Volver a la lista de productos</a>
+<div id="cart-content-product-details">
