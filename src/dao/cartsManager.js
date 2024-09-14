@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Cart from './models/cartsModel.js';
 
 export class CartsManager {
@@ -6,22 +7,24 @@ export class CartsManager {
             if (quantity <= 0) {
                 throw new Error('La cantidad debe ser mayor que cero.');
             }
+
             const cart = await Cart.findById(cartId);
             if (!cart) {
                 throw new Error('Carrito no encontrado.');
             }
 
-            const existingProduct = cart.products.find(p => p.product.toString() === productId);
+            const existingProduct = cart.products.find(p => p.product.equals(mongoose.Types.ObjectId.createFromHexString(productId)));
+
             if (existingProduct) {
+
                 existingProduct.quantity += quantity;
             } else {
-                cart.products.push({ product: productId, quantity });
+                cart.products.push({ product: mongoose.Types.ObjectId.createFromHexString(productId), quantity });
             }
 
-            // Save the cart after modifying it
             await cart.save();
-            await cart.populate('products.product');  // Populate products after saving the cart
-            return cart;  // Return populated cart
+            await cart.populate('products.product');
+            return cart;
         } catch (error) {
             throw new Error('Error agregando producto al carrito: ' + error.message);
         }
@@ -33,10 +36,10 @@ export class CartsManager {
             if (!cart) {
                 throw new Error('Carrito no encontrado.');
             }
-            cart.products = cart.products.filter(p => p.product.toString() !== productId);
+            cart.products = cart.products.filter(p => !p.product.equals(mongoose.Types.ObjectId.createFromHexString(productId)));
             await cart.save();
-            await cart.populate('products.product');  // Populate products after saving
-            return cart;  // Return populated cart
+            await cart.populate('products.product');
+            return cart;
         } catch (error) {
             throw new Error('Error eliminando producto del carrito: ' + error.message);
         }
@@ -44,7 +47,7 @@ export class CartsManager {
 
     async getCart(cartId) {
         try {
-            const cart = await Cart.findById(cartId).populate('products.product').lean();  
+            const cart = await Cart.findById(cartId).populate('products.product').lean();
             if (!cart) {
                 throw new Error('Carrito no encontrado.');
             }
@@ -60,29 +63,30 @@ export class CartsManager {
             if (!cart) {
                 throw new Error('Carrito no encontrado.');
             }
-            cart.products = [];  // Limpiar el array de productos
-            await cart.save();   // Guardar cambios en la base de datos
-            await cart.populate('products.product');  // Asegurar que el carrito esté poblado correctamente
-            return cart;  // Devolver el carrito vacío
+            cart.products = [];
+            await cart.save();
+            await cart.populate('products.product');
+            return cart;
         } catch (error) {
             throw new Error('Error vaciando carrito: ' + error.message);
         }
     }
+
     async updateProductQuantity(cartId, productId, quantity) {
         const cart = await Cart.findById(cartId);
         if (!cart) throw new Error('Carrito no encontrado.');
 
-        const productInCart = cart.products.find(p => p.product.toString() === productId);
+        const productInCart = cart.products.find(p => p.product.equals(mongoose.Types.ObjectId.createFromHexString(productId)));
+
         if (!productInCart) throw new Error('Producto no encontrado en el carrito.');
 
         productInCart.quantity = quantity;
         await cart.save();
 
-        return cart.populate('products.product').execPopulate();
+        await cart.populate('products.product');
+
+        return cart;
     }
-    
 }
-
-
 
 export const cartsManager = new CartsManager();

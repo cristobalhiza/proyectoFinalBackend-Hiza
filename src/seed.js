@@ -23,7 +23,7 @@ const seedDatabase = async () => {
 
         mongoose.disconnect();
     } catch (error) {
-        console.error('Error seeding DB:', error);
+        console.error('Error agregando DB:', error);
         process.exit(1);
     }
 };

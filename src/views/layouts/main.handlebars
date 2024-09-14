@@ -1,24 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <link rel="stylesheet" href="/css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{title}}</title>
 </head>
+
 <body>
-    <header>
-        <nav>
-            <a href="/">Inicio</a> |
-            <a href="/products">Productos</a> |
-            <a href="/api/carts/{{cartId}}">Ver Carrito</a> 
-        </nav>
-    </header>
-    {{{body}}}
-    <footer>
-        <p>Proyecto Final Backend I Cristobal Hiza</p>
-    </footer>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/js/index.js"></script> 
+  <header>
+    <nav>
+      <a href="/">Inicio</a> |
+      <a href="/products">Productos</a> |
+      <a id="verCarrito" href="#">Ver Carrito</a>
+
+    </nav>
+  </header>
+  {{{body}}}
+  <footer>
+    <p>Proyecto Final Backend I Cristobal Hiza</p>
+  </footer>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/index.js"></script>
 </body>
+
 </html>

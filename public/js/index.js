@@ -1,6 +1,5 @@
 const socket = io();
 
-// Escuchar el evento 'cartUpdated' y 'cartError' una sola vez para todos los casos en el frontend
 socket.on('cartUpdated', (cart) => {
     console.log('Carrito actualizado', cart);
     updateCartView(cart);
@@ -8,6 +7,10 @@ socket.on('cartUpdated', (cart) => {
 
 socket.on('cartError', (error) => {
     alert(`Error: ${error.message}`);
+});
+
+socket.on('productUpdated', (message) => {
+    alert(message);
 });
 
 socket.on('cartCreated', ({ cartId }) => {
@@ -23,7 +26,6 @@ socket.on('productError', (errorMessage) => {
     alert("Error: " + errorMessage);
 });
 
-// Función para actualizar la lista de productos en la interfaz
 function updateProductList(products) {
     const productList = document.getElementById('products-list') || document.getElementById('productList');
     productList.innerHTML = '';
@@ -41,48 +43,56 @@ function updateProductList(products) {
     });
 }
 
-// Función para agregar productos al carrito
 function addToCart(productId, quantity) {
     let cartId = localStorage.getItem('cartId');
-    socket.emit('addToCart', { cartId, productId, quantity });
+
+    const parsedQuantity = parseInt(quantity, 10);
+
+    socket.emit('addToCart', { cartId, productId, quantity: parsedQuantity });
 }
 
-// Función para actualizar la cantidad de productos en el carrito
 function updateProductQuantity(productId) {
+    const cartId = localStorage.getItem('cartId');
+    if (cartId) {
+        document.getElementById('verCarrito').href = `/api/carts/${cartId}`;
+    } else {
+        alert("No se ha encontrado un carrito.");
+    }
+
     const quantity = document.getElementById(`quantity-${productId}`).value;
-    socket.emit('updateCartProduct', { productId, quantity });
+
+    socket.emit('updateCartProduct', { cartId, productId, quantity });
 }
 
-// Función para eliminar un producto del carrito
 function deleteProductFromCart(productId) {
-    let cartId = localStorage.getItem('cartId');
+    const cartId = localStorage.getItem('cartId');
+    if (!cartId) {
+        alert('No se ha encontrado un carrito válido.');
+        return;
+    }
+
     socket.emit('deleteCartProduct', { cartId, productId });
 }
 
-// Función para vaciar el carrito
 function emptyCart() {
     const cartId = localStorage.getItem('cartId');
-    
+
     if (!cartId) {
         alert('No hay carrito disponible para vaciar.');
         return;
     }
-    
-    socket.emit('emptyCart', { cartId });  // Emite evento 'emptyCart' al servidor
+
+    socket.emit('emptyCart', { cartId });
 }
 
-// Función para eliminar productos
 function deleteProduct(productId) {
-    console.log(`Eliminando producto con ID: ${productId}`);
-    socket.emit('deleteProduct', productId); 
+    socket.emit('deleteProduct', productId);
 }
 
-// Función para actualizar la vista del carrito en la interfaz
 function updateCartView(cart) {
     const cartContentCart = document.getElementById('cart-content-cart');
     const cartContentProductDetails = document.getElementById('cart-content-product-details');
 
-    // Verificar cuál está disponible
     const cartContent = cartContentCart || cartContentProductDetails;
 
     if (!cartContent) {
@@ -90,7 +100,7 @@ function updateCartView(cart) {
         return;
     }
 
-    cartContent.innerHTML = '';  // Limpiar el contenido previo
+    cartContent.innerHTML = '';
 
     if (cart.products.length === 0) {
         cartContent.innerHTML = '<p>El carrito está vacío.</p>';
@@ -112,17 +122,27 @@ function updateCartView(cart) {
 
     cartContent.appendChild(ul);
 
-    // Botón para vaciar el carrito
     const emptyCartButton = `
         <button onclick="emptyCart()">Vaciar carrito</button>
     `;
     cartContent.innerHTML += emptyCartButton;
 }
 
-// Emitir 'getCart' cuando se carga la página del carrito
 const cartId = localStorage.getItem('cartId');
 if (cartId) {
-    socket.emit('getCart', cartId);  // Solicitar el carrito desde el servidor
+    socket.emit('getCart', cartId); 
 } else {
     document.getElementById('cart-content').innerHTML = '<p>El carrito está vacío.</p>';
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const cartId = localStorage.getItem('cartId');
+    const verCarritoLink = document.getElementById('verCarrito');
+
+    if (cartId) {
+        verCarritoLink.href = `/api/carts/${cartId}`;
+    } else {
+        alert('No se ha encontrado un carrito en la sesión actual.');
+        verCarritoLink.href = '#';
+    }
+});

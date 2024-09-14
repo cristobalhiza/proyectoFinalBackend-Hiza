@@ -17,7 +17,6 @@ const cartSchema = new mongoose.Schema({
     ]
 }, { timestamps: true });
 
-// Automatically populate products when using findOne (without lean)
 cartSchema.pre('findOne', function () {
     this.populate('products.product');
 });

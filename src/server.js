@@ -8,7 +8,7 @@ import viewsRouter from './routes/views.router.js';
 import productsRouter from './routes/products.router.js';
 import cartsRouter from './routes/carts.router.js';
 import { productsManager } from './dao/productsManager.js';
-import { CartsManager } from './dao/cartsManager.js';  
+import { CartsManager } from './dao/cartsManager.js';
 import Cart from './dao/models/cartsModel.js';
 import connectDB from './connDB.js';
 import handlebars from 'handlebars';
@@ -28,6 +28,7 @@ const hbs = create({
     extname: '.handlebars',
     defaultLayout: 'main',
 });
+// me apareció unos errores con handlebars y según revisé en internet, estas ultimas lineas era la forma de arreglarlo
 
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
@@ -48,7 +49,6 @@ server.listen(PORT, () => {
     console.log(`Servidor online en puerto ${PORT}`);
 });
 
-// Instantiate CartsManager
 const cartsManager = new CartsManager();
 
 io.on('connection', (socket) => {
@@ -80,35 +80,33 @@ io.on('connection', (socket) => {
 
     socket.on('addToCart', async ({ cartId, productId, quantity }) => {
         try {
-            // Si no se proporciona un cartId, se crea un nuevo carrito
+
             if (!cartId) {
                 const newCart = await Cart.create({ products: [{ product: productId, quantity }] });
                 cartId = newCart._id;
-                socket.emit('cartCreated', { cartId });  // Envía el nuevo ID de carrito al cliente
+                socket.emit('cartCreated', { cartId });
             } else {
-                // Añadir producto al carrito existente
+
                 const updatedCart = await cartsManager.addProductToCart(cartId, productId, quantity);
-                socket.emit('cartUpdated', updatedCart);  // Envía el carrito actualizado al frontend
+                socket.emit('cartUpdated', updatedCart);
             }
         } catch (error) {
-            console.error("Error agregando producto al carrito:", error);
             socket.emit('cartError', { message: 'Error agregando producto al carrito' });
         }
     });
 
-    // Actualizar la cantidad de un producto en el carrito
     socket.on('updateCartProduct', async ({ cartId, productId, quantity }) => {
         try {
-            if (!cartId) throw new Error('Carrito no encontrado');
+            if (!cartId) throw new Error(`Carrito no encontrado para el ID: ${cartId}`);
 
             const updatedCart = await cartsManager.updateProductQuantity(cartId, productId, quantity);
             socket.emit('cartUpdated', updatedCart);
+            socket.emit('productUpdated', 'El producto ha sido actualizado correctamente.');
         } catch (error) {
             socket.emit('cartError', { message: error.message });
         }
     });
 
-    // Eliminar un producto del carrito
     socket.on('deleteCartProduct', async ({ cartId, productId }) => {
         try {
             if (!cartId) throw new Error('Carrito no encontrado');
@@ -123,20 +121,25 @@ io.on('connection', (socket) => {
     socket.on('emptyCart', async ({ cartId }) => {
         try {
             if (!cartId) throw new Error('Carrito no encontrado');
-    
-            const updatedCart = await cartsManager.clearCart(cartId);  // Vaciar el carrito
-            socket.emit('cartUpdated', updatedCart);  // Emitir carrito actualizado
+
+            const updatedCart = await cartsManager.clearCart(cartId);
+            if (updatedCart.products.length === 0) {
+                console.log(`Carrito ${cartId} vaciado con éxito.`);
+            }
+            socket.emit('cartUpdated', updatedCart);
         } catch (error) {
             socket.emit('cartError', { message: error.message });
         }
     });
-    // Obtener el carrito
+
     socket.on('getCart', async (cartId) => {
         try {
             const cart = await cartsManager.getCart(cartId);
-            socket.emit('cartUpdated', cart);  // Envía el carrito actualizado al frontend
+            if (cart.products.length === 0) {
+                console.log(`Carrito ${cartId} está vacío.`);
+            }
+            socket.emit('cartUpdated', cart);
         } catch (error) {
-            console.error("Error obteniendo el carrito:", error);
             socket.emit('cartError', { message: 'Error obteniendo el carrito' });
         }
     });
