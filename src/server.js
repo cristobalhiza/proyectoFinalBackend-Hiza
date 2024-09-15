@@ -3,17 +3,18 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import connectDB from './connDB.js';
+import { config } from './config/config.js';
 import { engine } from 'express-handlebars';
 import handlebars from 'handlebars';
 import productsRouter from './routes/products.router.js';
 import apiProductsRouter from './routes/apiProducts.router.js'
-import viewsRouter from './routes/views.router.js'
 import cartsRouter from './routes/carts.router.js';
+import apiCartsRouter from './routes/apiCarts.router.js'
+import viewsRouter from './routes/views.router.js'
 import productsManager from './dao/productsManager.js';
 import { CartsManager } from './dao/cartsManager.js';
 import Cart from './dao/models/cartsModel.js';
-import connectDB from './connDB.js';
-import { config } from './config/config.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,7 +37,8 @@ connectDB();
 app.use('/', viewsRouter);
 app.use('/products', productsRouter);
 app.use('/api/products', apiProductsRouter)
-app.use('/api/carts', cartsRouter);
+app.use('/carts', cartsRouter);
+app.use('/api/carts', apiCartsRouter)
 
 handlebars.registerHelper('eq', function (a, b) {
     return a === b;

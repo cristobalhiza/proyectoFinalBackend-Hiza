@@ -57,6 +57,15 @@ export class CartsManager {
         }
     }
 
+    static async getAllCarts() {
+        try {
+            const carts = await Cart.find().lean(); //si necesita ver detalle productos usar .populate('products.product') en principio no parece necesaria tanta información
+            return carts;
+        } catch(error){
+            throw new Error('Error obteniendo carritos: ' + error.message);
+        }
+    }
+
     static async clearCart(cartId) {
         try {
             const cart = await Cart.findById(cartId);
@@ -88,12 +97,12 @@ export class CartsManager {
         return cart;
     }
 
-    static async create(){
-        return await Cart.create({products:[]})
+    static async create() {
+        return await Cart.create({ products: [] })
     }
 
-    static async update(id, cart){
-        return await Cart.updateOne({_id:id}, cart)
+    static async update(id, cart) {
+        return await Cart.updateOne({ _id: id }, cart)
     }
 }
 
