@@ -3,6 +3,7 @@ import { isValidObjectId } from 'mongoose';
 import { CartsManager } from '../dao/cartsManager.js';
 import Product from '../dao/models/productsModel.js';
 import Cart from '../dao/models/cartsModel.js';
+import { procesaErrores } from '../utils.js';
 
 const router = Router();
 const cartsManager = new CartsManager();
@@ -54,7 +55,7 @@ router.post('/create/product/:pid', async (req, res) => {
     }
 });
 
-router.post('/:cid/product/:pid', async (req, res) => {
+router.put('/:cid/products/:pid', async (req, res) => {
     try {
         const { cid, pid } = req.params;
         const { quantity } = req.body;
@@ -81,7 +82,7 @@ router.post('/:cid/product/:pid', async (req, res) => {
     }
 });
 
-router.delete('/:cid/product/:pid', async (req, res) => {
+router.delete('/:cid/products/:pid', async (req, res) => {
     try {
         const { cid, pid } = req.params;
 
@@ -93,7 +94,7 @@ router.delete('/:cid/product/:pid', async (req, res) => {
 
         res.status(200).json({ cart });
     } catch (error) {
-        res.status(500).json({ error: 'No se pudo eliminar el producto del carrito', detalle: error.message });
+        return procesaErrores(error, res);
     }
 });
 
@@ -109,7 +110,7 @@ router.delete('/:cid', async (req, res) => {
 
         res.status(200).json({ cart });
     } catch (error) {
-        res.status(500).json({ error: 'No se pudo vaciar el carrito', detalle: error.message });
+        return procesaErrores(error, res)
     }
 });
 

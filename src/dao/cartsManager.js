@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import Cart from './models/cartsModel.js';
 
 export class CartsManager {
-    async addProductToCart(cartId, productId, quantity) {
+    static async addProductToCart(cartId, productId, quantity) {
         try {
             if (quantity <= 0) {
                 throw new Error('La cantidad debe ser mayor que cero.');
@@ -30,7 +30,7 @@ export class CartsManager {
         }
     }
 
-    async deleteProductFromCart(cartId, productId) {
+    static async deleteProductFromCart(cartId, productId) {
         try {
             const cart = await Cart.findById(cartId);
             if (!cart) {
@@ -45,7 +45,7 @@ export class CartsManager {
         }
     }
 
-    async getCart(cartId) {
+    static async getCart(cartId) {
         try {
             const cart = await Cart.findById(cartId).populate('products.product').lean();
             if (!cart) {
@@ -57,7 +57,7 @@ export class CartsManager {
         }
     }
 
-    async clearCart(cartId) {
+    static async clearCart(cartId) {
         try {
             const cart = await Cart.findById(cartId);
             if (!cart) {
@@ -72,7 +72,7 @@ export class CartsManager {
         }
     }
 
-    async updateProductQuantity(cartId, productId, quantity) {
+    static async updateProductQuantity(cartId, productId, quantity) {
         const cart = await Cart.findById(cartId);
         if (!cart) throw new Error('Carrito no encontrado.');
 
@@ -87,6 +87,14 @@ export class CartsManager {
 
         return cart;
     }
+
+    static async create(){
+        return await Cart.create({products:[]})
+    }
+
+    static async update(id, cart){
+        return await Cart.updateOne({_id:id}, cart)
+    }
 }
 
-export const cartsManager = new CartsManager();
+

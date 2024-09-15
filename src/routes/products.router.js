@@ -1,28 +1,21 @@
-
 import { Router } from 'express';
 import { isValidObjectId } from 'mongoose';
-import { productsManager } from '../dao/productsManager.js';
+import ProductsManager from '../dao/productsManager.js';  
 
 const router = Router();
 
+// Obtener productos paginados y renderizar la vista HTML
 router.get('/', async (req, res) => {
     try {
         const { limit = 10, page = 1, sort, query } = req.query;
 
-        const result = await productsManager.getAllProducts({
-            query: {
-                category: query?.category,
-                availability: query?.availability
-            },
-            limit: parseInt(limit),
-            page: parseInt(page),
-            sort,
-        });
+        // Usar el método centralizado 'get' de ProductsManager
+        const result = await ProductsManager.get(page, limit);
 
         res.status(200).render('index', {
-            products: result.products,
-            totalPages: result.totalPages,
-            page: result.page,
+            products: result.docs,         
+            totalPages: result.totalPages, 
+            page: result.page,             
             hasPrevPage: result.hasPrevPage,
             hasNextPage: result.hasNextPage,
             prevPage: result.prevPage,
@@ -34,6 +27,7 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Obtener un producto por ID y renderizar la vista de detalles
 router.get('/:pid', async (req, res) => {
     try {
         const { pid } = req.params;
@@ -41,7 +35,8 @@ router.get('/:pid', async (req, res) => {
             return res.status(400).json({ error: "El ID del producto no es válido" });
         }
 
-        const product = await productsManager.getProductById(pid);
+        // Usar el método 'getBy' de ProductsManager para obtener el producto
+        const product = await ProductsManager.getBy({ _id: pid });
         if (product) {
             res.status(200).render('productDetails', { product });
         } else {
