@@ -12,9 +12,7 @@ import apiProductsRouter from './routes/apiProducts.router.js'
 import cartsRouter from './routes/carts.router.js';
 import apiCartsRouter from './routes/apiCarts.router.js'
 import viewsRouter from './routes/views.router.js'
-import productsManager from './dao/productsManager.js';
 import { CartsManager } from './dao/cartsManager.js';
-import Cart from './dao/models/cartsModel.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,6 +26,10 @@ app.engine('handlebars', engine());
 app.set('view engine', 'handlebars');
 app.set('views', path.join(__dirname, './views'));
 
+handlebars.registerHelper('eq', function (a, b) {
+    return a === b;
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
@@ -40,104 +42,73 @@ app.use('/api/products', apiProductsRouter)
 app.use('/carts', cartsRouter);
 app.use('/api/carts', apiCartsRouter)
 
-handlebars.registerHelper('eq', function (a, b) {
-    return a === b;
-});
-
 server.listen(PORT, () => {
     console.log(`Servidor online en puerto ${PORT}`);
 });
 
-const cartsManager = new CartsManager();
-
 io.on('connection', (socket) => {
     console.log('Nuevo usuario conectado');
 
-    socket.on('newProduct', async (product) => {
-        try {
-            const { title, price, category, stock } = product;
-
-            if (!title || price <= 0 || !category || stock < 0) {
-                throw new Error("Datos de producto inválidos.");
-            }
-
-            const updatedProducts = await productsManager.addProduct({ title, price, category, stock });
-            io.emit('productListUpdated', updatedProducts);
-        } catch (error) {
-            socket.emit('productError', error.message);
-        }
-    });
-
-    socket.on('deleteProduct', async (productId) => {
-        try {
-            const updatedProducts = await productsManager.deleteProduct(productId);
-            io.emit('productListUpdated', updatedProducts);
-        } catch (error) {
-            socket.emit('productError', error.message);
-        }
-    });
+        // Escuchar cuando el carrito ha sido actualizado
+        socket.on('cartUpdated', (cart) => {
+            console.log('Carrito actualizado:', cart);
+            // Emitir el carrito actualizado a todos los clientes
+            io.emit('cartUpdated', cart);
+        });
 
     socket.on('addToCart', async ({ cartId, productId, quantity }) => {
         try {
-
+            let cart;
             if (!cartId) {
-                const newCart = await Cart.create({ products: [{ product: productId, quantity }] });
-                cartId = newCart._id;
-                socket.emit('cartCreated', { cartId });
+                // Si no hay carrito, creamos uno nuevo
+                cart = await Cart.create({ products: [{ product: productId, quantity }] });
+                cartId = cart._id; // Obtenemos el ID del nuevo carrito
+                socket.emit('cartCreated', cartId); // Emitimos el nuevo cartId al cliente
             } else {
-
-                const updatedCart = await cartsManager.addProductToCart(cartId, productId, quantity);
-                socket.emit('cartUpdated', updatedCart);
+                cart = await cartsManager.addProductToCart(cartId, productId, quantity);
             }
+            socket.emit('cartUpdated', cart); // Emitimos la actualización del carrito
         } catch (error) {
+            console.error('Error agregando producto al carrito:', error);
             socket.emit('cartError', { message: 'Error agregando producto al carrito' });
         }
     });
 
+    // Evento para actualizar la cantidad de un producto
     socket.on('updateCartProduct', async ({ cartId, productId, quantity }) => {
         try {
-            if (!cartId) throw new Error(`Carrito no encontrado para el ID: ${cartId}`);
-
-            const updatedCart = await cartsManager.updateProductQuantity(cartId, productId, quantity);
-            socket.emit('cartUpdated', updatedCart);
-            socket.emit('productUpdated', 'El producto ha sido actualizado correctamente.');
+            const updatedCart = await CartsManager.updateProductQuantity(cartId, productId, quantity);
+            io.emit('cartUpdated', updatedCart);  // Emitir el carrito actualizado a todos los clientes
         } catch (error) {
             socket.emit('cartError', { message: error.message });
         }
     });
 
+    // Evento para eliminar un producto del carrito
     socket.on('deleteCartProduct', async ({ cartId, productId }) => {
         try {
-            if (!cartId) throw new Error('Carrito no encontrado');
-
-            const updatedCart = await cartsManager.deleteProductFromCart(cartId, productId);
-            socket.emit('cartUpdated', updatedCart);
+            const updatedCart = await CartsManager.deleteProductFromCart(cartId, productId);
+            io.emit('cartUpdated', updatedCart);  // Emitir el carrito actualizado a todos los clientes
         } catch (error) {
             socket.emit('cartError', { message: error.message });
         }
     });
 
+    // Evento para vaciar el carrito
     socket.on('emptyCart', async ({ cartId }) => {
         try {
-            if (!cartId) throw new Error('Carrito no encontrado');
-
-            const updatedCart = await cartsManager.clearCart(cartId);
-            if (updatedCart.products.length === 0) {
-                console.log(`Carrito ${cartId} vaciado con éxito.`);
-            }
-            socket.emit('cartUpdated', updatedCart);
+            const updatedCart = await CartsManager.clearCart(cartId);
+            io.emit('cartUpdated', updatedCart);  // Emitir el carrito actualizado a todos los clientes
         } catch (error) {
             socket.emit('cartError', { message: error.message });
         }
     });
 
+    // Obtener el carrito al conectar
     socket.on('getCart', async (cartId) => {
         try {
-            const cart = await cartsManager.getCart(cartId);
-            if (cart.products.length === 0) {
-                console.log(`Carrito ${cartId} está vacío.`);
-            }
-            socket.emit('cartUpdated', cart);
+            const cart = await CartsManager.getCart(cartId);
+            socket.emit('cartUpdated', cart);  // Enviar el carrito actualizado solo al cliente que lo solicitó
         } catch (error) {
             socket.emit('cartError', { message: 'Error obteniendo el carrito' });
         }

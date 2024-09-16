@@ -6,7 +6,7 @@ export const router = Router();
 
 router.get('/', async (req, res) => {
     try {
-        res.render('home', { products: result.docs });
+        res.render('home');
     } catch (error) {
         return procesaErrores(error, res)
     }

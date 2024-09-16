@@ -21,11 +21,8 @@ router.get('/:cid', async (req, res) => {
 
         res.render('cart', { cart });
     } catch (error) {
-        return procesaErrores(res, error)
+        return procesaErrores(res, error);
     }
 });
 
 export default router;
-
-
-

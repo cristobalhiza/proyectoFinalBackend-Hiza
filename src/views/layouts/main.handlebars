@@ -1,19 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}}</title>
 </head>
-
 <body>
   <header>
     <nav>
       <a href="/">Inicio</a> |
       <a href="/products">Productos</a> |
-      <a id="verCarrito" href="#">Ver Carrito</a>
-
+      <a id="cartLink" href="#">Ver Carrito</a> <!-- Enlace al carrito -->
     </nav>
   </header>
   {{{body}}}
@@ -22,6 +19,18 @@
   </footer>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/index.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const cartLink = document.getElementById('cartLink');
+      const cartId = localStorage.getItem('cartId');
+      
+      if (cartId) {
+        cartLink.href = `/carts/${cartId}`; // Actualiza el enlace con el cartId almacenado
+      } else {
+        cartLink.href = '#'; // Si no hay carrito, deshabilitar el enlace
+        alert('No se ha encontrado un carrito en la sesión actual.');
+      }
+    });
+  </script>
 </body>
-
 </html>

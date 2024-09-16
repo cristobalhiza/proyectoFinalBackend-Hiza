@@ -1,23 +1,20 @@
 <h1>Listado de Productos</h1>
 
-<a href="/realtimeproducts">Ir a Administración de Productos</a>
-
 <form id="page-size-form" method="GET">
   <label for="page-size">Mostrar:</label>
   <select name="limit" id="page-size" onchange="this.form.submit()">
     <option value="10" {{#if (eq limit 10)}}selected{{/if}}>10</option>
     <option value="20" {{#if (eq limit 20)}}selected{{/if}}>20</option>
-    <option value="50" {{#if (eq limit 50)}}selected{{/if}}>50</option>
+    <option value="30" {{#if (eq limit 30)}}selected{{/if}}>30</option>
+    <option value="40" {{#if (eq limit 40)}}selected{{/if}}>40</option>
   </select> productos por página
 </form>
 
-<ul id="products-list">
+<ul>
   {{#each products}}
   <li>
-    <strong>{{this.title}}</strong> - ${{this.price}} ({{this.category}})
-    <label for="quantity-{{this._id}}">Cantidad:</label>
-    <input type="number" id="quantity-{{this._id}}" name="quantity" min="1" value="1" required>
-
+    <strong>{{this.title}}</strong> - ${{this.price}}
+    <input type="number" id="quantity-{{this._id}}" name="quantity" min="1" value="1">
     <button type="button" onclick="addToCart('{{this._id}}', document.getElementById('quantity-{{this._id}}').value)">
       Agregar al carrito
     </button>

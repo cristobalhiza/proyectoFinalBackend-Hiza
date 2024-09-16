@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
 
         let filter = {};
         if (category) {
-            filter.category = { $regex: new RegExp(category, 'i') };  // Regex case-insensitive
+            filter.category = { $regex: new RegExp(category, 'i') }; 
         }
 
         const options = {

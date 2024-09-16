@@ -1,102 +1,106 @@
+// Declarar socket al inicio, fuera de cualquier función.
 const socket = io();
 
+// Listener para actualizaciones del carrito
 socket.on('cartUpdated', (cart) => {
-    console.log('Carrito actualizado', cart);
     updateCartView(cart);
 });
 
+// Listener para errores
 socket.on('cartError', (error) => {
     alert(`Error: ${error.message}`);
 });
 
-socket.on('productUpdated', (message) => {
-    alert(message);
-});
+// Función para agregar un producto al carrito
+function addToCart(productId, quantity) {
+    const cartId = localStorage.getItem('cartId');
+    const parsedQuantity = parseInt(quantity, 10) || 1;
 
-socket.on('cartCreated', ({ cartId }) => {
-    localStorage.setItem('cartId', cartId);
-    alert('Nuevo carrito creado.');
-});
+    const url = cartId
+        ? `/api/carts/${cartId}/product/${productId}`
+        : `/api/carts/create/product/${productId}`;
 
-socket.on('productListUpdated', (products) => {
-    updateProductList(products);
-});
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: parsedQuantity })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.cart) {
+            if (!cartId) {
+                localStorage.setItem('cartId', data.cart._id); // Guardar cartId en localStorage
+            }
+            alert('Producto agregado al carrito.');
+            socket.emit('cartUpdated', data.cart);  // Emitir evento para actualizar el carrito
+        }
+    })
+    .catch(error => {
+        alert('Error al agregar el producto al carrito');
+        console.error(error);
+    });
+}
+function updateProductQuantity(productId) {
+    const cartId = localStorage.getItem('cartId');
+    const quantity = document.getElementById(`quantity-${productId}`).value;
 
-socket.on('productError', (errorMessage) => {
-    alert("Error: " + errorMessage);
-});
-
-function updateProductList(products) {
-    const productList = document.getElementById('products-list') || document.getElementById('productList');
-    productList.innerHTML = '';
-    products.forEach(product => {
-        const li = document.createElement('li');
-        li.textContent = `${product.title} - $${product.price}`;
-        li.dataset.id = product.id;
-
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Eliminar';
-        deleteButton.onclick = () => deleteProduct(product.id);
-        li.appendChild(deleteButton);
-
-        productList.appendChild(li);
+    fetch(`/api/carts/${cartId}/product/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quantity: parseInt(quantity, 10) })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Cantidad actualizada');
+        socket.emit('cartUpdated', data.cart);  // Emitir evento para actualizar el carrito
+    })
+    .catch(error => {
+        alert('Error al actualizar la cantidad');
+        console.error(error);
     });
 }
 
-function addToCart(productId, quantity) {
-    let cartId = localStorage.getItem('cartId');
-
-    const parsedQuantity = parseInt(quantity, 10);
-
-    socket.emit('addToCart', { cartId, productId, quantity: parsedQuantity });
-}
-
-function updateProductQuantity(productId) {
-    const cartId = localStorage.getItem('cartId');
-    if (cartId) {
-        document.getElementById('verCarrito').href = `/api/carts/${cartId}`;
-    } else {
-        alert("No se ha encontrado un carrito.");
-    }
-
-    const quantity = document.getElementById(`quantity-${productId}`).value;
-
-    socket.emit('updateCartProduct', { cartId, productId, quantity });
-}
-
+// Función para eliminar un producto del carrito
 function deleteProductFromCart(productId) {
     const cartId = localStorage.getItem('cartId');
-    if (!cartId) {
-        alert('No se ha encontrado un carrito válido.');
-        return;
-    }
 
-    socket.emit('deleteCartProduct', { cartId, productId });
+    fetch(`/api/carts/${cartId}/product/${productId}`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Producto eliminado');
+        socket.emit('cartUpdated', data.cart);  // Emitir evento para actualizar el carrito
+    })
+    .catch(error => {
+        alert('Error al eliminar el producto');
+        console.error(error);
+    });
 }
-
+// Función para vaciar el carrito
 function emptyCart() {
     const cartId = localStorage.getItem('cartId');
-
     if (!cartId) {
         alert('No hay carrito disponible para vaciar.');
         return;
     }
 
-    socket.emit('emptyCart', { cartId });
+    fetch(`/api/carts/${cartId}`, { method: 'DELETE' })
+    .then(response => response.json())
+    .then(data => {
+        alert('Carrito vaciado correctamente.');
+        socket.emit('cartUpdated', data.cart); // Emitir evento para actualizar el carrito
+    })
+    .catch(error => {
+        alert('Error al vaciar el carrito');
+        console.error(error);
+    });
 }
 
-function deleteProduct(productId) {
-    socket.emit('deleteProduct', productId);
-}
-
+// Función para actualizar la vista del carrito
 function updateCartView(cart) {
-    const cartContentCart = document.getElementById('cart-content-cart');
-    const cartContentProductDetails = document.getElementById('cart-content-product-details');
-
-    const cartContent = cartContentCart || cartContentProductDetails;
-
+    const cartContent = document.getElementById('cart-content');
     if (!cartContent) {
-        console.warn("No se encontró el contenedor del carrito en esta página.");
         return;
     }
 
@@ -115,34 +119,20 @@ function updateCartView(cart) {
             <label for="quantity">Cantidad:</label>
             <input type="number" id="quantity-${product.product._id}" name="quantity" value="${product.quantity}" min="1">
             <button onclick="updateProductQuantity('${product.product._id}')">Actualizar</button>
-            <button onclick="deleteProductFromCart('${product.product._id}')">Eliminar del carrito</button>
+            <button onclick="deleteProductFromCart('${product.product._id}')">Eliminar</button>
         `;
         ul.appendChild(li);
     });
 
     cartContent.appendChild(ul);
-
-    const emptyCartButton = `
-        <button onclick="emptyCart()">Vaciar carrito</button>
-    `;
-    cartContent.innerHTML += emptyCartButton;
+    cartContent.innerHTML += '<button onclick="emptyCart()">Vaciar carrito</button>';
+    
 }
 
-const cartId = localStorage.getItem('cartId');
-if (cartId) {
-    socket.emit('getCart', cartId); 
-} else {
-    document.getElementById('cart-content').innerHTML = '<p>El carrito está vacío.</p>';
-}
-
+// Al cargar la página, obtenemos el carrito si existe
 document.addEventListener('DOMContentLoaded', () => {
     const cartId = localStorage.getItem('cartId');
-    const verCarritoLink = document.getElementById('verCarrito');
-
     if (cartId) {
-        verCarritoLink.href = `/api/carts/${cartId}`;
-    } else {
-        alert('No se ha encontrado un carrito en la sesión actual.');
-        verCarritoLink.href = '#';
+        socket.emit('getCart', cartId);  // Pedimos el carrito al servidor
     }
 });

@@ -8,11 +8,12 @@
 
     <label for="quantity">Cantidad:</label>
     <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+    
     <button type="button" onclick="addToCart('{{product._id}}', document.getElementById('quantity').value)">
-        Agregar al carrito
+      Agregar al carrito
     </button>
+
     <br>
     <br>
     <a href="/products">Volver a la lista de productos</a>
 </div>
-<div id="cart-content-product-details">
