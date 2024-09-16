@@ -8,18 +8,27 @@ export class CartsManager {
                 throw new Error('La cantidad debe ser mayor que cero.');
             }
 
+            if (!mongoose.Types.ObjectId.isValid(cartId)) {
+                throw new Error('El ID del carrito no es válido.');
+            }
+            if (!mongoose.Types.ObjectId.isValid(productId)) {
+                throw new Error('El ID del producto no es válido.');
+            }
+
+            // Buscar carrito
             const cart = await Cart.findById(cartId);
             if (!cart) {
                 throw new Error('Carrito no encontrado.');
             }
 
-            const existingProduct = cart.products.find(p => p.product.equals(mongoose.Types.ObjectId.createFromHexString(productId)));
+            const existingProduct = cart.products.find(p =>
+                p.product && p.product.equals(productId)
+            );
 
             if (existingProduct) {
-
                 existingProduct.quantity += quantity;
             } else {
-                cart.products.push({ product: mongoose.Types.ObjectId.createFromHexString(productId), quantity });
+                cart.products.push({ product: productId, quantity });
             }
 
             await cart.save();

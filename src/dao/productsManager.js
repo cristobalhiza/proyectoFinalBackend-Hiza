@@ -16,11 +16,13 @@ export default class ProductsManager {
 
     static async create(product) {
         const { code, title, description, price, category, stock, status, thumbnail } = product;
-
-        if (!code || !title || !description || price === undefined || !category || stock === undefined || !thumbnail) {
+    
+        console.log({ code, title, description, price, category, stock, status, thumbnail });
+    
+        if (!code || !title || !price || !category || stock == null) {
             throw new Error('Todos los campos requeridos deben completarse.');
         }
-
+    
         try {
             return await Product.create(product);
         } catch (error) {
