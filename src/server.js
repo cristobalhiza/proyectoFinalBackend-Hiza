@@ -13,6 +13,7 @@ import cartsRouter from './routes/carts.router.js';
 import apiCartsRouter from './routes/apiCarts.router.js'
 import viewsRouter from './routes/views.router.js'
 import { CartsManager } from './dao/cartsManager.js';
+import ProductsManager from './dao/productsManager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,68 +50,106 @@ server.listen(PORT, () => {
 io.on('connection', (socket) => {
     console.log('Nuevo usuario conectado');
 
-        // Escuchar cuando el carrito ha sido actualizado
-        socket.on('cartUpdated', (cart) => {
-            console.log('Carrito actualizado:', cart);
-            // Emitir el carrito actualizado a todos los clientes
-            io.emit('cartUpdated', cart);
-        });
+    socket.on('cartUpdated', (cart) => {
+        console.log('Carrito actualizado:', cart);
+        io.emit('cartUpdated', cart);
+    });
 
     socket.on('addToCart', async ({ cartId, productId, quantity }) => {
         try {
             let cart;
             if (!cartId) {
-                // Si no hay carrito, creamos uno nuevo
-                cart = await Cart.create({ products: [{ product: productId, quantity }] });
-                cartId = cart._id; // Obtenemos el ID del nuevo carrito
-                socket.emit('cartCreated', cartId); // Emitimos el nuevo cartId al cliente
+                cart = await CartsManager.create();
+                cartId = cart._id;
+                cart = await CartsManager.addProductToCart(cartId, productId, quantity);
+                socket.emit('cartCreated', cartId);
             } else {
-                cart = await cartsManager.addProductToCart(cartId, productId, quantity);
+                cart = await CartsManager.addProductToCart(cartId, productId, quantity);
             }
-            socket.emit('cartUpdated', cart); // Emitimos la actualización del carrito
+            socket.emit('cartUpdated', cart);
         } catch (error) {
             console.error('Error agregando producto al carrito:', error);
             socket.emit('cartError', { message: 'Error agregando producto al carrito' });
         }
     });
 
-    // Evento para actualizar la cantidad de un producto
     socket.on('updateCartProduct', async ({ cartId, productId, quantity }) => {
         try {
             const updatedCart = await CartsManager.updateProductQuantity(cartId, productId, quantity);
-            io.emit('cartUpdated', updatedCart);  // Emitir el carrito actualizado a todos los clientes
+            io.emit('cartUpdated', updatedCart);
         } catch (error) {
             socket.emit('cartError', { message: error.message });
         }
     });
 
-    // Evento para eliminar un producto del carrito
     socket.on('deleteCartProduct', async ({ cartId, productId }) => {
         try {
             const updatedCart = await CartsManager.deleteProductFromCart(cartId, productId);
-            io.emit('cartUpdated', updatedCart);  // Emitir el carrito actualizado a todos los clientes
+            io.emit('cartUpdated', updatedCart);
         } catch (error) {
             socket.emit('cartError', { message: error.message });
         }
     });
 
-    // Evento para vaciar el carrito
     socket.on('emptyCart', async ({ cartId }) => {
         try {
             const updatedCart = await CartsManager.clearCart(cartId);
-            io.emit('cartUpdated', updatedCart);  // Emitir el carrito actualizado a todos los clientes
+            io.emit('cartUpdated', updatedCart);
         } catch (error) {
             socket.emit('cartError', { message: error.message });
         }
     });
 
-    // Obtener el carrito al conectar
     socket.on('getCart', async (cartId) => {
         try {
             const cart = await CartsManager.getCart(cartId);
-            socket.emit('cartUpdated', cart);  // Enviar el carrito actualizado solo al cliente que lo solicitó
+            socket.emit('cartUpdated', cart);
         } catch (error) {
             socket.emit('cartError', { message: 'Error obteniendo el carrito' });
+        }
+    });
+
+    socket.on('newProduct', async (productData) => {
+
+        try {
+            const { title, price, category, stock, code, description } = productData;
+    
+            if (!code || !title || !price || !category || stock == null) {
+                socket.emit('productError', { message: 'Faltan campos obligatorios' });
+                return;
+            }
+    
+            const newProduct = await ProductsManager.create({ 
+                title, 
+                price, 
+                category, 
+                stock, 
+                code, 
+                description,
+                status: true,  
+                thumbnail: ''
+            });
+    
+            console.log('New product saved:', newProduct);
+    
+            const updatedProducts = await ProductsManager.get();
+    
+            io.emit('productListUpdated', updatedProducts.docs);
+        } catch (error) {
+            console.error('Error creating product:', error);
+            socket.emit('productError', { message: 'Error al agregar el producto' });
+        }
+    });
+
+    socket.on('deleteProduct', async (productId) => {
+        try {
+            await ProductsManager.delete(productId);
+
+            const updatedProducts = await ProductsManager.get();
+
+            io.emit('productListUpdated', updatedProducts.docs);
+        } catch (error) {
+            socket.emit('productError', { message: 'Error al eliminar el producto' });
         }
     });
 });

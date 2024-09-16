@@ -72,7 +72,7 @@ router.post('/:cid/product/:pid', async (req, res) => {
 router.put('/:cid', async (req, res) => {
     try {
         const { cid } = req.params;
-        const { products } = req.body;  // Arreglo de productos
+        const { products } = req.body; //array de productos
 
         if (!isValidObjectId(cid)) {
             return res.status(400).json({ error: 'El ID del carrito no es válido' });

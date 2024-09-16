@@ -10,7 +10,8 @@
     <nav>
       <a href="/">Inicio</a> |
       <a href="/products">Productos</a> |
-      <a id="cartLink" href="#">Ver Carrito</a> <!-- Enlace al carrito -->
+      <a id="cartLink" href="#">Ver Carrito</a> |
+      <a href="/realtimeproducts">Modificar Productos</a>
     </nav>
   </header>
   {{{body}}}
@@ -25,10 +26,9 @@
       const cartId = localStorage.getItem('cartId');
       
       if (cartId) {
-        cartLink.href = `/carts/${cartId}`; // Actualiza el enlace con el cartId almacenado
+        cartLink.href = `/carts/${cartId}`;
       } else {
-        cartLink.href = '#'; // Si no hay carrito, deshabilitar el enlace
-        alert('No se ha encontrado un carrito en la sesión actual.');
+        cartLink.href = '#'; 
       }
     });
   </script>

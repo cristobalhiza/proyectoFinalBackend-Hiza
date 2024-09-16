@@ -61,7 +61,7 @@ export class CartsManager {
         try {
             const carts = await Cart.find().lean(); //si necesita ver detalle productos usar .populate('products.product') en principio no parece necesaria tanta información
             return carts;
-        } catch(error){
+        } catch (error) {
             throw new Error('Error obteniendo carritos: ' + error.message);
         }
     }

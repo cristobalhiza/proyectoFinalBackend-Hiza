@@ -5,13 +5,29 @@
     <input type="number" id="price" placeholder="Precio" min="0" required />
     <input type="text" id="category" placeholder="Categoría" required />
     <input type="number" id="stock" placeholder="Stock" min="0" required />
+    <input type="text" id="code" placeholder="Código" required /> 
+    <input type="text" id="description" placeholder="Descripción" required />
     <button type="submit">Agregar Producto</button>
 </form>
 
 <ul id="productList">
     {{#each products}}
-    <li>{{this.title}} - ${{this.price}} ({{this.category}}) - Stock: {{this.stock}}
+    <li>{{this.title}} - ${{this.price}}  <strong>Código:</strong> {{this.code}} ({{this.category}}) - Stock: {{this.stock}}
         <button onclick="deleteProduct('{{this._id}}')">Eliminar</button>
     </li>
     {{/each}}
 </ul>
+
+<div>
+    {{#if hasPrevPage}}
+    <a href="?page={{prevPage}}&limit={{limit}}">Anterior</a>
+    {{/if}}
+
+    Página {{page}} de {{totalPages}}
+
+    {{#if hasNextPage}}
+    <a href="?page={{nextPage}}&limit={{limit}}">Siguiente</a>
+    {{/if}}
+</div>
+
+<script src="/js/realTimeProducts.js"></script>
